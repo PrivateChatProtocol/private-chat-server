@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  private-chat-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: private-chat-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - private-chat-network
+
+networks:
+  private-chat-network:
+    external: false
