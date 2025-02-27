@@ -35,7 +35,10 @@ export interface ChatMessage extends BaseMessage {
 
 export interface ErrorMessage extends BaseMessage {
   type: MessageType.ERROR;
-  message: string;
+  roomId: string;
+  username: string;
+  content: string;
+  timestamp: number;
 }
 
 export interface UserListMessage extends BaseMessage {

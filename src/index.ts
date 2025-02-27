@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import { ChatManager } from './chat-manager';
-import { Message, MessageType, ChatMessage } from './types';
+import { Message, MessageType, ChatMessage, ErrorMessage } from './types';
 
 const chatManager = new ChatManager();
 
@@ -22,7 +22,15 @@ const app = new Elysia()
           case MessageType.JOIN_ROOM:
             const success = chatManager.joinRoom(ws, parsedMessage.roomId, parsedMessage.username)
             if (!success) {
-              chatManager.sendError(ws, 'Failed to join room');
+              const errorMessage: ErrorMessage = {
+                system: true,
+                type: MessageType.ERROR,
+                roomId: parsedMessage.roomId,
+                username: parsedMessage.username,
+                content: 'Username already taken',
+                timestamp: Date.now(),
+              };
+              chatManager.sendError(ws, errorMessage);
             }
             break;
             
@@ -40,7 +48,15 @@ const app = new Elysia()
         }
       } catch (error) {
         console.error('Error processing message:', error);
-        chatManager.sendError(ws, 'Invalid message format');
+        const errorMessage: ErrorMessage = {
+          system: true,
+          type: MessageType.ERROR,
+          roomId: '',
+          username: '',
+          content: 'Invalid message format',
+          timestamp: Date.now(),
+        };
+        chatManager.sendError(ws, errorMessage);
       }
     },
     close(ws) {
@@ -51,5 +67,5 @@ const app = new Elysia()
   .listen(8000);
 
 console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  `🔒 Private Chat backend is running at ${app.server?.hostname}:${app.server?.port}`
 );

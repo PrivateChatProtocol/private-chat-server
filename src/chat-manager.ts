@@ -1,9 +1,14 @@
 import { WebSocket } from "bun";
 import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ChatMessage, ErrorMessage, UserListMessage } from "./types";
 
+// Define room data structure that contains all related information
+interface RoomData {
+    clients: Map<WebSocket, string>; // WebSocket to username mapping
+    usernames: Set<string>;          // Set of all usernames in the room
+}
+
 export class ChatManager {
-    private rooms: Map<string, Set<WebSocket>> = new Map();
-    private userSocketMap: Map<WebSocket, string> = new Map();
+    private rooms: Map<string, RoomData> = new Map();
 
     // Create a new room
     createRoom(roomId: string): boolean {
@@ -11,29 +16,37 @@ export class ChatManager {
             return false;
         }
 
-        this.rooms.set(roomId, new Set());
+        this.rooms.set(roomId, {
+            clients: new Map(),
+            usernames: new Set()
+        });
         return true;
     }
 
     // Add user to a room
     joinRoom(ws: WebSocket, roomId: string, username: string): boolean {
-        this.createRoom(roomId);
+        // Create room if it doesn't exist
+        if (!this.rooms.has(roomId)) {
+            this.createRoom(roomId);
+        }
 
-        const room = this.rooms.get(roomId);
+        const roomData = this.rooms.get(roomId)!;
 
-        if (!room) {
+        // Check if username is already in the room
+        if (roomData.usernames.has(username)) {
             return false;
         }
 
-        if (room.has(ws)) {
+        // Check if this connection is already in the room
+        if (roomData.clients.has(ws)) {
             return false;
         }
 
-        room.add(ws);
-        this.userSocketMap.set(ws, username);
+        // Add user to room
+        roomData.clients.set(ws, username);
+        roomData.usernames.add(username);
 
         // Notify all users in the room that a new user has joined
-        // this.broadcastUserList(roomId);
         const message: JoinRoomMessage = {
             system: true,
             type: MessageType.JOIN_ROOM,
@@ -43,21 +56,24 @@ export class ChatManager {
         };
         this.broadcastMessage(roomId, message);
 
+        console.log('User joined room:', roomId, '- username:', username);
+
         return true;
     }
 
     // Remove user from a room
     leaveRoom(ws: WebSocket, roomId: string, username: string): boolean {
-        const room = this.rooms.get(roomId);
+        const roomData = this.rooms.get(roomId);
 
-        if (!room) {
+        if (!roomData) {
             return false;
         }
 
-        room.delete(ws);
+        roomData.clients.delete(ws);
+        roomData.usernames.delete(username);
 
         // If room is empty, delete it
-        if (room.size === 0) {
+        if (roomData.clients.size === 0) {
             this.rooms.delete(roomId);
             console.log('Room deleted:', roomId);
         } else {
@@ -77,9 +93,9 @@ export class ChatManager {
 
     // Broadcast a message to all users in a room
     broadcastMessage(roomId: string, message: Message): void {
-        const room = this.rooms.get(roomId);
+        const roomData = this.rooms.get(roomId);
 
-        if (!room) {
+        if (!roomData) {
             return;
         }
 
@@ -87,67 +103,47 @@ export class ChatManager {
             ...message,
             timestamp: Date.now()
         });
-        room.forEach(client => {
+        
+        for (const client of roomData.clients.keys()) {
             client.send(messageStr);
-        });
+        }
     }
 
     // Broadcast the list of users in a room
     broadcastUserList(roomId: string): void {
-        const room = this.rooms.get(roomId);
+        const roomData = this.rooms.get(roomId);
 
-        if (!room) {
+        if (!roomData) {
             return;
         }
-
-        const users: string[] = [];
-        room.forEach(client => {
-            const username = this.userSocketMap.get(client);
-            if (username) {
-                users.push(username);
-            }
-        });
 
         const message: UserListMessage = {
             system: true,
             type: MessageType.USER_LIST,
             roomId,
-            users
+            users: Array.from(roomData.usernames)
         };
 
         this.broadcastMessage(roomId, message);
     }
 
-    // Get all available rooms
-    // getRooms(): string[] {
-    //     return Array.from(this.rooms.keys());
-    // }
-
     // Send an error message to a client
-    sendError(ws: WebSocket, errorMessage: string): void {
-        const message: ErrorMessage = {
-            system: true,
-            type: MessageType.ERROR,
-            message: errorMessage
-        };
+    sendError(ws: WebSocket, message: ErrorMessage): void {
+        console.log('Sending error message:', message);
         ws.send(JSON.stringify(message));
     }
 
     // Handle user disconnect
     handleDisconnect(ws: WebSocket): void {
-        // Find which rooms this user is in and remove them
         console.log('Disconnecting user...');
-        this.rooms.forEach((clients, roomId) => {
-            console.log('roomId:', roomId);
-            if (clients.has(ws)) {
-                const username = this.userSocketMap.get(ws);
-                console.log('username found:', username);
-                if (!username) {
-                    return;
-                }
+        
+        // Find which rooms this user is in and remove them
+        this.rooms.forEach((roomData, roomId) => {
+            const username = roomData.clients.get(ws);
+            if (username) {
+                console.log('Found user in room:', roomId, '- username:', username);
                 this.leaveRoom(ws, roomId, username);
             }
         });
-        this.userSocketMap.delete(ws);
     }
 }
