@@ -2,6 +2,17 @@
 
 A secure, real-time WebSocket-based private chat server built with [Elysia](https://elysiajs.com/) and [Bun](https://bun.sh/), designed with privacy as a core principle.
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Bun](https://img.shields.io/badge/Bun-1.0%2B-black)](https://bun.sh)
+[![Elysia](https://img.shields.io/badge/Elysia-latest-purple)](https://elysiajs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![Docker](https://img.shields.io/badge/Docker-ready-blue)](https://www.docker.com/)
+[![Maintenance](https://img.shields.io/badge/Maintained-yes-green.svg)](https://github.com/username/private-chat-backend/graphs/commit-activity)
+[![Privacy First](https://img.shields.io/badge/Privacy-First-darkgreen)](https://en.wikipedia.org/wiki/Privacy_by_design)
+[![No Tracking](https://img.shields.io/badge/No-Tracking-red)](https://en.wikipedia.org/wiki/Internet_privacy)
+[![Zero Knowledge](https://img.shields.io/badge/Zero-Knowledge-purple)](https://en.wikipedia.org/wiki/Zero-knowledge_proof)
+
 ## Features
 
 - End-to-end encryption for all messages
