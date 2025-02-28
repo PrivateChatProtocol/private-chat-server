@@ -1,4 +1,4 @@
-import { WebSocket } from "bun";
+import { ElysiaWS } from "elysia/dist/ws";
 import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ChatMessage, ErrorMessage, UserListMessage } from "./types";
 import { logger } from "./utils/logger";
 
@@ -6,8 +6,8 @@ import { logger } from "./utils/logger";
  * Room data structure containing all related room information
  */
 interface RoomData {
-    /** Map of WebSocket connections to usernames */
-    clients: Map<WebSocket, string>;
+    /** Map of usernames to ElysiaWS connections */
+    clients: Map<string, ElysiaWS>;
     /** Set of all usernames in the room */
     usernames: Set<string>;
 }
@@ -40,12 +40,12 @@ export class ChatManager {
 
     /**
      * Add a user to a room
-     * @param ws - WebSocket connection of the user
+     * @param ws - ElysiaWS connection of the user
      * @param roomId - ID of the room to join
      * @param username - Username of the user
      * @returns true if user successfully joined, false otherwise
      */
-    joinRoom(ws: WebSocket, roomId: string, username: string): boolean {
+    joinRoom(ws: ElysiaWS, roomId: string, username: string): boolean {
         // Create room if it doesn't exist
         if (!this.rooms.has(roomId)) {
             this.createRoom(roomId);
@@ -59,14 +59,16 @@ export class ChatManager {
             return false;
         }
 
-        // Check if this connection is already in the room
-        if (roomData.clients.has(ws)) {
-            logger.warn(`Connection already in room ${roomId}`);
-            return false;
+        // Check if this connection is already in another username in the room
+        for (const [_, connection] of roomData.clients.entries()) {
+            if (connection === ws) {
+                logger.warn(`Connection already in room ${roomId}`);
+                return false;
+            }
         }
 
         // Add user to room
-        roomData.clients.set(ws, username);
+        roomData.clients.set(username, ws);
         roomData.usernames.add(username);
 
         // Notify all users in the room that a new user has joined
@@ -85,12 +87,12 @@ export class ChatManager {
 
     /**
      * Remove a user from a room
-     * @param ws - WebSocket connection of the user
+     * @param ws - ElysiaWS connection of the user
      * @param roomId - ID of the room to leave
      * @param username - Username of the user
      * @returns true if user successfully left, false otherwise
      */
-    leaveRoom(ws: WebSocket, roomId: string, username: string): boolean {
+    leaveRoom(ws: ElysiaWS, roomId: string, username: string): boolean {
         const roomData = this.rooms.get(roomId);
 
         if (!roomData) {
@@ -98,7 +100,7 @@ export class ChatManager {
             return false;
         }
 
-        roomData.clients.delete(ws);
+        roomData.clients.delete(username);
         roomData.usernames.delete(username);
 
         // If room is empty, delete it
@@ -140,7 +142,7 @@ export class ChatManager {
         });
         
         try {
-            for (const client of roomData.clients.keys()) {
+            for (const client of roomData.clients.values()) {
                 client.send(messageStr);
             }
             logger.debug(`Broadcasted message to room ${roomId}`);
@@ -151,10 +153,10 @@ export class ChatManager {
 
     /**
      * Send an error message to a client
-     * @param ws - WebSocket connection to send the error to
+     * @param ws - ElysiaWS connection to send the error to
      * @param message - Error message
      */
-    sendError(ws: WebSocket, message: ErrorMessage): void {
+    sendError(ws: ElysiaWS, message: ErrorMessage): void {
         try {
             ws.send(JSON.stringify(message));
             logger.debug(`Sent error to user ${message.username}: ${message.content}`);
@@ -165,17 +167,25 @@ export class ChatManager {
 
     /**
      * Handle user disconnect by removing them from all rooms
-     * @param ws - WebSocket connection of the disconnected user
+     * @param ws - ElysiaWS connection of the disconnected user
      */
-    handleDisconnect(ws: WebSocket): void {
+    handleDisconnect(ws: ElysiaWS): void {
         logger.info('User disconnected');
         
         // Find which rooms this user is in and remove them
         this.rooms.forEach((roomData, roomId) => {
-            const username = roomData.clients.get(ws);
-            if (username) {
-                logger.info(`Removing disconnected user ${username} from room ${roomId}`);
-                this.leaveRoom(ws, roomId, username);
+            // Find username associated with this connection
+            let disconnectedUsername: string | undefined;
+            for (const [username, connection] of roomData.clients.entries()) {
+                if (connection.id === ws.id) {
+                    disconnectedUsername = username;
+                    break;
+                }
+            }
+
+            if (disconnectedUsername) {
+                logger.info(`Removing disconnected user ${disconnectedUsername} from room ${roomId}`);
+                this.leaveRoom(ws, roomId, disconnectedUsername);
             }
         });
     }
