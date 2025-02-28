@@ -1,18 +1,32 @@
 import { WebSocket } from "bun";
 import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ChatMessage, ErrorMessage, UserListMessage } from "./types";
+import { logger } from "./utils/logger";
 
-// Define room data structure that contains all related information
+/**
+ * Room data structure containing all related room information
+ */
 interface RoomData {
-    clients: Map<WebSocket, string>; // WebSocket to username mapping
-    usernames: Set<string>;          // Set of all usernames in the room
+    /** Map of WebSocket connections to usernames */
+    clients: Map<WebSocket, string>;
+    /** Set of all usernames in the room */
+    usernames: Set<string>;
 }
 
+/**
+ * Manages chat rooms, users, and message broadcasting
+ */
 export class ChatManager {
+    /** Map of room IDs to room data */
     private rooms: Map<string, RoomData> = new Map();
 
-    // Create a new room
+    /**
+     * Create a new room
+     * @param roomId - Unique identifier for the room
+     * @returns true if room was created, false if it already exists
+     */
     createRoom(roomId: string): boolean {
         if (this.rooms.has(roomId)) {
+            logger.info(`Room ${roomId} already exists`);
             return false;
         }
 
@@ -20,10 +34,17 @@ export class ChatManager {
             clients: new Map(),
             usernames: new Set()
         });
+        logger.info(`Room ${roomId} created`);
         return true;
     }
 
-    // Add user to a room
+    /**
+     * Add a user to a room
+     * @param ws - WebSocket connection of the user
+     * @param roomId - ID of the room to join
+     * @param username - Username of the user
+     * @returns true if user successfully joined, false otherwise
+     */
     joinRoom(ws: WebSocket, roomId: string, username: string): boolean {
         // Create room if it doesn't exist
         if (!this.rooms.has(roomId)) {
@@ -34,11 +55,13 @@ export class ChatManager {
 
         // Check if username is already in the room
         if (roomData.usernames.has(username)) {
+            logger.warn(`Username ${username} already taken in room ${roomId}`);
             return false;
         }
 
         // Check if this connection is already in the room
         if (roomData.clients.has(ws)) {
+            logger.warn(`Connection already in room ${roomId}`);
             return false;
         }
 
@@ -55,17 +78,23 @@ export class ChatManager {
             content: `@${username} joined the room`
         };
         this.broadcastMessage(roomId, message);
-
-        console.log('User joined room:', roomId, '- username:', username);
-
+        
+        logger.info(`User ${username} joined room ${roomId}`);
         return true;
     }
 
-    // Remove user from a room
+    /**
+     * Remove a user from a room
+     * @param ws - WebSocket connection of the user
+     * @param roomId - ID of the room to leave
+     * @param username - Username of the user
+     * @returns true if user successfully left, false otherwise
+     */
     leaveRoom(ws: WebSocket, roomId: string, username: string): boolean {
         const roomData = this.rooms.get(roomId);
 
         if (!roomData) {
+            logger.warn(`Attempted to leave non-existent room ${roomId}`);
             return false;
         }
 
@@ -75,7 +104,7 @@ export class ChatManager {
         // If room is empty, delete it
         if (roomData.clients.size === 0) {
             this.rooms.delete(roomId);
-            console.log('Room deleted:', roomId);
+            logger.info(`Room ${roomId} deleted (empty)`);
         } else {
             // Notify remaining users that a user has left
             const message: LeaveRoomMessage = {
@@ -88,14 +117,20 @@ export class ChatManager {
             this.broadcastMessage(roomId, message);
         }
 
+        logger.info(`User ${username} left room ${roomId}`);
         return true;
     }
 
-    // Broadcast a message to all users in a room
+    /**
+     * Broadcast a message to all users in a room
+     * @param roomId - ID of the room to broadcast to
+     * @param message - Message to broadcast
+     */
     broadcastMessage(roomId: string, message: Message): void {
         const roomData = this.rooms.get(roomId);
 
         if (!roomData) {
+            logger.warn(`Attempted to broadcast to non-existent room ${roomId}`);
             return;
         }
 
@@ -104,44 +139,42 @@ export class ChatManager {
             timestamp: Date.now()
         });
         
-        for (const client of roomData.clients.keys()) {
-            client.send(messageStr);
+        try {
+            for (const client of roomData.clients.keys()) {
+                client.send(messageStr);
+            }
+            logger.debug(`Broadcasted message to room ${roomId}`);
+        } catch (error) {
+            logger.error(`Error broadcasting message: ${error}`);
         }
     }
 
-    // Broadcast the list of users in a room
-    broadcastUserList(roomId: string): void {
-        const roomData = this.rooms.get(roomId);
-
-        if (!roomData) {
-            return;
-        }
-
-        const message: UserListMessage = {
-            system: true,
-            type: MessageType.USER_LIST,
-            roomId,
-            users: Array.from(roomData.usernames)
-        };
-
-        this.broadcastMessage(roomId, message);
-    }
-
-    // Send an error message to a client
+    /**
+     * Send an error message to a client
+     * @param ws - WebSocket connection to send the error to
+     * @param message - Error message
+     */
     sendError(ws: WebSocket, message: ErrorMessage): void {
-        console.log('Sending error message:', message);
-        ws.send(JSON.stringify(message));
+        try {
+            ws.send(JSON.stringify(message));
+            logger.debug(`Sent error to user ${message.username}: ${message.content}`);
+        } catch (error) {
+            logger.error(`Error sending error message: ${error}`);
+        }
     }
 
-    // Handle user disconnect
+    /**
+     * Handle user disconnect by removing them from all rooms
+     * @param ws - WebSocket connection of the disconnected user
+     */
     handleDisconnect(ws: WebSocket): void {
-        console.log('Disconnecting user...');
+        logger.info('User disconnected');
         
         // Find which rooms this user is in and remove them
         this.rooms.forEach((roomData, roomId) => {
             const username = roomData.clients.get(ws);
             if (username) {
-                console.log('Found user in room:', roomId, '- username:', username);
+                logger.info(`Removing disconnected user ${username} from room ${roomId}`);
                 this.leaveRoom(ws, roomId, username);
             }
         });
