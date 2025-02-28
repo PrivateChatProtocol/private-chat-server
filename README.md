@@ -13,13 +13,13 @@ A secure, real-time WebSocket-based private chat server built with [Elysia](http
 [![No Tracking](https://img.shields.io/badge/No-Tracking-red)](https://en.wikipedia.org/wiki/Internet_privacy)
 [![Zero Knowledge](https://img.shields.io/badge/Zero-Knowledge-purple)](https://en.wikipedia.org/wiki/Zero-knowledge_proof)
 
+This backend requires a frontend client to function. You can find the frontend client [here](https://github.com/CarlosLugones/private-chat-frontend).
+
 ## Features
 
-- End-to-end encryption for all messages
 - Real-time messaging using secure WebSockets
 - Private chat rooms with access control
 - Zero storage of message content on server
-- User presence management with privacy controls
 - Containerized deployment with Docker
 - Built with TypeScript for type safety
 
