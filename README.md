@@ -1,15 +1,21 @@
-# Elysia with Bun runtime
+# Private Chat Backend
+
+A real-time WebSocket-based private chat server built with [Elysia](https://elysiajs.com/) and [Bun](https://bun.sh/).
+
+## Features
+
+- Real-time messaging using WebSockets
+- Private chat rooms
+- User presence management
+- Containerized deployment with Docker
+- Built with TypeScript for type safety
 
 ## Getting Started
-To get started with this template, simply paste this command into your terminal:
-```bash
-bun create elysia ./elysia-example
-```
 
-## Development
-To start the development server run:
-```bash
-bun run dev
-```
+### Prerequisites
 
-Open http://localhost:3000/ with your browser to see the result.
+- [Bun](https://bun.sh/) 1.0.0 or higher
+
+### Installation
+
+1. Clone the repository
