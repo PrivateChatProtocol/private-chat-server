@@ -1,6 +1,6 @@
 # Private Chat Backend
 
-A secure, real-time WebSocket-based private chat server built with [Elysia](https://elysiajs.com/) and [Bun](https://bun.sh/), designed with privacy as a core principle.
+A secure, ephemeral chat application with no history, logs, tracking, or authentication.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Bun](https://img.shields.io/badge/Bun-1.0%2B-black)](https://bun.sh)
