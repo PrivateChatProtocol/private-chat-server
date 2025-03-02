@@ -25,9 +25,7 @@ const app = new Elysia()
       try {
         const parsedMessage = message as Message;
 
-        if (config.isDevelopment) {
-          logger.debug('Received message:', parsedMessage);
-        }
+        logger.debug('Received message:', parsedMessage);
         
         switch (parsedMessage.type) {
           case MessageType.JOIN_ROOM:

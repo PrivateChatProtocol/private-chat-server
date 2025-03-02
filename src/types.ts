@@ -5,6 +5,7 @@ export enum MessageType {
   JOIN_ROOM = 'JOIN_ROOM',
   LEAVE_ROOM = 'LEAVE_ROOM',
   CHAT_MESSAGE = 'CHAT_MESSAGE',
+  USER_LIST = 'USER_LIST',
   ERROR = 'ERROR',
 }
 
