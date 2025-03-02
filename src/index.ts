@@ -50,6 +50,10 @@ const app = new Elysia()
           case MessageType.CHAT_MESSAGE:
             chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
             break;
+          
+          case MessageType.IMAGE_MESSAGE:
+            chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
+            break;
             
           default:
             logger.warn(`Unknown message type: ${parsedMessage.type}`);
