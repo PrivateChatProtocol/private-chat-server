@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import { ChatManager } from './chat-manager';
-import { Message, MessageType, ChatMessage, ErrorMessage } from './types';
+import { Message, MessageType, ErrorMessage } from './types';
 import { logger } from './utils/logger';
 import { config } from './config';
 
@@ -25,9 +25,7 @@ const app = new Elysia()
       try {
         const parsedMessage = message as Message;
 
-        if (config.isDevelopment) {
-          logger.debug('Received message:', parsedMessage);
-        }
+        logger.debug('Received message:', parsedMessage);
         
         switch (parsedMessage.type) {
           case MessageType.JOIN_ROOM:
@@ -50,6 +48,10 @@ const app = new Elysia()
             break;
             
           case MessageType.CHAT_MESSAGE:
+            chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
+            break;
+          
+          case MessageType.IMAGE_MESSAGE:
             chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
             break;
             

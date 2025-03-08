@@ -1,5 +1,5 @@
 import { ElysiaWS } from "elysia/dist/ws";
-import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ChatMessage, ErrorMessage, UserListMessage } from "./types";
+import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ErrorMessage, UserListMessage } from "./types";
 import { logger } from "./utils/logger";
 
 /**
@@ -82,6 +82,16 @@ export class ChatManager {
         this.broadcastMessage(roomId, message);
         
         logger.info(`User ${username} joined room ${roomId}`);
+
+        // Broadcast the list of users to the room
+        const userListMessage: UserListMessage = {
+            system: true,
+            type: MessageType.USER_LIST,
+            roomId: roomId,
+            users: Array.from(roomData.usernames)
+        };
+        this.broadcastMessage(roomId, userListMessage);
+        
         return true;
     }
 
@@ -120,6 +130,16 @@ export class ChatManager {
         }
 
         logger.info(`User ${username} left room ${roomId}`);
+
+        // Broadcast the list of users to the room
+        const userListMessage: UserListMessage = {
+            system: true,
+            type: MessageType.USER_LIST,
+            roomId: roomId,
+            users: Array.from(roomData.usernames)
+        };
+        this.broadcastMessage(roomId, userListMessage);
+
         return true;
     }
 

@@ -5,6 +5,8 @@ export enum MessageType {
   JOIN_ROOM = 'JOIN_ROOM',
   LEAVE_ROOM = 'LEAVE_ROOM',
   CHAT_MESSAGE = 'CHAT_MESSAGE',
+  IMAGE_MESSAGE = 'IMAGE_MESSAGE',
+  USER_LIST = 'USER_LIST',
   ERROR = 'ERROR',
 }
 
@@ -55,6 +57,23 @@ export interface ChatMessage extends BaseMessage {
   username: string;
   /** Message content */
   content: string;
+  /** Timestamp when the message was sent */
+  timestamp: number;
+}
+
+/**
+ * Image message sent by a user
+ */
+export interface ImageMessage extends BaseMessage {
+  type: MessageType.IMAGE_MESSAGE;
+  /** ID of the room this message belongs to */
+  roomId: string;
+  /** Username of the sender */
+  username: string;
+  /** Base64-encoded image data */
+  imageData: string;
+  /** Image caption */
+  caption: string;
   /** Timestamp when the message was sent */
   timestamp: number;
 }
