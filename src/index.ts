@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import { ChatManager } from './chat-manager';
-import { Message, MessageType, ChatMessage, ErrorMessage } from './types';
+import { Message, MessageType, ErrorMessage } from './types';
 import { logger } from './utils/logger';
 import { config } from './config';
 
