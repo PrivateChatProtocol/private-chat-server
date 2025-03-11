@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import { ChatManager } from './chat-manager';
-import { Message, MessageType, ErrorMessage } from './types';
+import { Message, MessageType, ErrorMessage, JoinRoomMessage, LeaveRoomMessage } from './types';
 import { logger } from './utils/logger';
 import { config } from './config';
 
@@ -8,13 +8,13 @@ import { config } from './config';
  * Initialize the chat application
  */
 const chatManager = new ChatManager();
-
+const port = (config.isDevelopment && Bun.argv.slice(2).includes("--port")) ? Bun.argv.slice(2)[1] : config.port ;
 const app = new Elysia()
   .ws('/ws', {
     /**
      * Handle new WebSocket connection
      */
-    open(ws) {
+    open(_ws) {
       logger.info('New connection opened');
     },
     
@@ -29,22 +29,25 @@ const app = new Elysia()
         
         switch (parsedMessage.type) {
           case MessageType.JOIN_ROOM:
-            const success = chatManager.joinRoom(ws, parsedMessage.roomId, parsedMessage.username);
-            if (!success) {
-              const errorMessage: ErrorMessage = {
-                system: true,
-                type: MessageType.ERROR,
-                roomId: parsedMessage.roomId,
-                username: parsedMessage.username,
-                content: 'Username already taken',
-                timestamp: Date.now(),
-              };
-              chatManager.sendError(ws, errorMessage);
-            }
+            
+              const joinRoomMessage = parsedMessage as JoinRoomMessage;
+              const success = chatManager.joinRoom(ws, joinRoomMessage.roomId, joinRoomMessage.username);
+              if (!success) {
+                const errorMessage: ErrorMessage = {
+                  system: true,
+                  type: MessageType.ERROR,
+                  roomId: joinRoomMessage.roomId,
+                  username: joinRoomMessage.username,
+                  content: 'Username already taken',
+                  timestamp: Date.now(),
+                };
+                chatManager.sendError(ws, errorMessage);
+                }
             break;
             
           case MessageType.LEAVE_ROOM:
-            chatManager.leaveRoom(ws, parsedMessage.roomId, parsedMessage.username);
+            const leaveRoomMessage = parsedMessage as LeaveRoomMessage;
+            chatManager.leaveRoom(ws, leaveRoomMessage.roomId, leaveRoomMessage.username);
             break;
             
           case MessageType.CHAT_MESSAGE:
@@ -76,7 +79,7 @@ const app = new Elysia()
     /**
      * Handle WebSocket close
      */
-    close(ws, code, message) {
+    close(ws, code, _message) {
       logger.info(`Connection closed with code ${code}`);
       chatManager.handleDisconnect(ws);
     },
@@ -84,13 +87,14 @@ const app = new Elysia()
     /**
      * Handle WebSocket error
      */
-    error(ws, error) {
+    error(...args: any[]):void {
+      const error = args[1];
       logger.error('WebSocket error:', error);
     }
   })
   // Health check endpoint
   .get('/health', () => ({ status: 'ok' }))
-  .listen(config.port);
+  .listen(port);
 
 console.log(
   `🔒 Private Chat backend is running at ${app.server?.hostname}:${app.server?.port}`
