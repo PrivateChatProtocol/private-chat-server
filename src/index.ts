@@ -3,8 +3,24 @@ import { ChatManager } from './chat-manager';
 import { Message, MessageType, ErrorMessage, JoinRoomMessage, LeaveRoomMessage } from './types';
 import { logger } from './utils/logger';
 import { config } from './config';
+import { renderIndexPage } from './templates/index.html';
 
 const VERSION = require('../package.json').version;
+
+/**
+ * Determines if the user agent is a browser
+ */
+function isBrowser(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+  
+  // Common browser identifiers
+  const browserIdentifiers = [
+    'Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera', 
+    'Edg', 'MSIE', 'Trident', 'Chromium'
+  ];
+  
+  return browserIdentifiers.some(identifier => userAgent.includes(identifier));
+}
 
 /**
  * Initialize the chat application
@@ -96,6 +112,27 @@ const app = new Elysia()
   })
   // Health check endpoint
   .get('/health', () => ({ status: 'ok' }))
+  .get('/', ({ request }) => {
+    const userAgent = request.headers.get('User-Agent');
+    
+    if (isBrowser(userAgent)) {
+      // Return HTML content for browsers
+      return new Response(renderIndexPage(VERSION, port), {
+        headers: {
+          'Content-Type': 'text/html'
+        }
+      });
+    } else {
+      // Return JSON for non-browser clients (like curl)
+      return Response.json({
+        protocol: "Private Chat Protocol",
+        version: VERSION,
+        status: "running",
+        port: port,
+        about: "https://privatechat.network/about"
+      });
+    }
+  })
   .listen(port);
 
 console.log(
