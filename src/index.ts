@@ -4,6 +4,8 @@ import { Message, MessageType, ErrorMessage, JoinRoomMessage, LeaveRoomMessage }
 import { logger } from './utils/logger';
 import { config } from './config';
 
+const VERSION = require('../package.json').version;
+
 /**
  * Initialize the chat application
  */
@@ -97,5 +99,5 @@ const app = new Elysia()
   .listen(port);
 
 console.log(
-  `🔒 Private Chat backend is running at ${app.server?.hostname}:${app.server?.port}`
+  `🔒 Private Chat Server\nVersion: v${VERSION}\nListening at ${app.server?.hostname}:${app.server?.port}`
 );
