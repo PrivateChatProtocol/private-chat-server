@@ -1,6 +1,6 @@
-# Contributing to Private Chat Backend
+# Contributing to Private Chat Server
 
-Thank you for considering contributing to Private Chat Backend! This document outlines the process for contributing to this project.
+Thank you for considering contributing to Private Chat Server! This document outlines the process for contributing to this project.
 
 ## Code of Conduct
 
@@ -24,29 +24,37 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in th
 ### Pull Requests
 
 1. Fork the repository
+
 2. Create a new branch for your feature or bugfix
    ```bash
    git checkout -b feature/your-feature-name
    ```
+
 3. Make your changes
+
 4. Run tests if available
    ```bash
    bun test
    ```
+
 5. Commit your changes with a descriptive commit message
+
 6. Push to your branch
+
 7. Create a Pull Request against the main repository
 
 ## Development Setup
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/private-chat-backend.git
+   git clone https://github.com/PrivateChatProtocol/private-chat-server.git
    ```
+
 2. Install dependencies
    ```bash
    bun install
    ```
+
 3. Start the development server
    ```bash
    bun run dev
@@ -65,4 +73,4 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in th
 - Add tests for new features when possible
 - Ensure your changes don't break existing functionality
 
-Thank you for contributing to Private Chat Backend!
+Thank you for contributing to Private Chat Server!

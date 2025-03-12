@@ -1,9 +1,9 @@
 services:
-  private-chat-backend:
+  private-chat-server:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: private-chat-backend
+    container_name: private-chat-server
     ports:
       - "8000:8000"
     environment:
