@@ -1,6 +1,6 @@
 {
-  "name": "private-chat-backend",
-  "version": "1.1.0",
+  "name": "private-chat-server",
+  "version": "1.2.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/index.ts"
