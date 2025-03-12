@@ -1,4 +1,4 @@
-# Private Chat Backend
+# Private Chat Server
 
 A secure, ephemeral chat application with no history, logs, tracking, or authentication.
 
@@ -13,7 +13,7 @@ A secure, ephemeral chat application with no history, logs, tracking, or authent
 [![No Tracking](https://img.shields.io/badge/No-Tracking-red)](https://en.wikipedia.org/wiki/Internet_privacy)
 [![Zero Knowledge](https://img.shields.io/badge/Zero-Knowledge-purple)](https://en.wikipedia.org/wiki/Zero-knowledge_proof)
 
-This backend requires a frontend client to function. You can find the frontend client [here](https://github.com/PrivateChatProtocol/private-chat-ui).
+This server works standalone. You can use this frontend client [here](https://github.com/PrivateChatProtocol/private-chat-ui) or build your own.
 
 ## Features
 
@@ -61,13 +61,13 @@ bun run dev
 1. Build the Docker image
 
 ```bash
-docker build -t private-chat-backend .
+docker build -t private-chat-server .
 ```
 
 2. Start the server
 
 ```bash
-docker run -p 8000:8000 private-chat-backend
+docker run -p 8000:8000 private-chat-server
 ```
 
 or, using Docker Compose

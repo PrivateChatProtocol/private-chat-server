@@ -1,6 +1,6 @@
-# Contributing to Private Chat Backend
+# Contributing to Private Chat Server
 
-Thank you for considering contributing to Private Chat Backend! This document outlines the process for contributing to this project.
+Thank you for considering contributing to Private Chat Server! This document outlines the process for contributing to this project.
 
 ## Code of Conduct
 
@@ -73,4 +73,4 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in th
 - Add tests for new features when possible
 - Ensure your changes don't break existing functionality
 
-Thank you for contributing to Private Chat Backend!
+Thank you for contributing to Private Chat Server!
