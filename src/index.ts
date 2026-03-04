@@ -26,9 +26,12 @@ function isBrowser(userAgent: string | null): boolean {
  * Initialize the chat application
  */
 const chatManager = new ChatManager();
-const port = (config.isDevelopment && Bun.argv.slice(2).includes("--port")) ? Bun.argv.slice(2)[1] : config.port ;
+const args = Bun.argv.slice(2);
+const portFlagIndex = args.indexOf("--port");
+const port = (config.isDevelopment && portFlagIndex !== -1) ? args[portFlagIndex + 1] : config.port;
 const app = new Elysia()
   .ws('/ws', {
+    maxPayloadLength: config.maxPayloadBytes,
     /**
      * Handle new WebSocket connection
      */
@@ -60,7 +63,7 @@ const app = new Elysia()
                   timestamp: Date.now(),
                 };
                 chatManager.sendError(ws, errorMessage);
-                }
+              }
             break;
             
           case MessageType.LEAVE_ROOM:
