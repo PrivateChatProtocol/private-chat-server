@@ -10,6 +10,13 @@ interface RoomData {
     clients: Map<string, ElysiaWS>;
 }
 
+const MAX_ID_LENGTH = 64;
+const VALID_ID_RE = /^[a-zA-Z0-9_-]+$/;
+
+function isValidId(value: string): boolean {
+    return value.length > 0 && value.length <= MAX_ID_LENGTH && VALID_ID_RE.test(value);
+}
+
 /**
  * Manages chat rooms, users, and message broadcasting
  */
@@ -43,6 +50,11 @@ export class ChatManager {
      * @returns true if user successfully joined, false otherwise
      */
     joinRoom(ws: ElysiaWS, roomId: string, username: string): boolean {
+        if (!isValidId(roomId) || !isValidId(username)) {
+            logger.warn(`Invalid roomId or username: "${roomId}", "${username}"`);
+            return false;
+        }
+
         // Create room if it doesn't exist
         if (!this.rooms.has(roomId)) {
             this.createRoom(roomId);
