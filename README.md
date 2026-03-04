@@ -26,9 +26,9 @@ This server works standalone. You can use this frontend client [here](https://gi
 ## Privacy Highlights
 
 - **No Message Storage**: Messages are not stored on the server, only relayed between authorized participants
-- **No Logs**: All logs are disabled in production mode
+- **No Logs**: All logs are disabled when `NODE_ENV=production`. Logs are active in development mode.
 - **No Third-Party Services**: Operates independently without external service dependencies
-- **Encrypted Trnamission**: All messages are encrypted in transit using secure WebSockets
+- **Encrypted Transmission**: Messages are transmitted over WSS (WebSocket Secure). TLS termination is handled at the infrastructure level (e.g. reverse proxy). The server itself does not manage certificates.
 - **Open Source**: Full transparency about how your data is handled
 
 ## Getting Started
