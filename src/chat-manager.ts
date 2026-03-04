@@ -127,18 +127,18 @@ export class ChatManager {
                 content: `@${username} left the room`
             };
             this.broadcastMessage(roomId, message);
+
+            // Broadcast the list of users to the room
+            const userListMessage: UserListMessage = {
+                system: true,
+                type: MessageType.USER_LIST,
+                roomId: roomId,
+                users: Array.from(roomData.usernames)
+            };
+            this.broadcastMessage(roomId, userListMessage);
         }
 
         logger.info(`User ${username} left room ${roomId}`);
-
-        // Broadcast the list of users to the room
-        const userListMessage: UserListMessage = {
-            system: true,
-            type: MessageType.USER_LIST,
-            roomId: roomId,
-            users: Array.from(roomData.usernames)
-        };
-        this.broadcastMessage(roomId, userListMessage);
 
         return true;
     }
