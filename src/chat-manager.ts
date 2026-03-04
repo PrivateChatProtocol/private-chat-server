@@ -1,4 +1,4 @@
-import { ElysiaWS } from "elysia/dist/ws";
+import { ElysiaWS } from "elysia/ws";
 import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ErrorMessage, UserListMessage } from "./types";
 import { logger } from "./utils/logger";
 
