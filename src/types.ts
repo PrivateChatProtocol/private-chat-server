@@ -106,4 +106,4 @@ export interface UserListMessage extends BaseMessage {
 /**
  * Union type of all possible message types
  */
-export type Message = JoinRoomMessage | LeaveRoomMessage | ChatMessage | ErrorMessage | UserListMessage;
+export type Message = JoinRoomMessage | LeaveRoomMessage | ChatMessage | ImageMessage | ErrorMessage | UserListMessage;
