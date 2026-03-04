@@ -8,8 +8,6 @@ import { logger } from "./utils/logger";
 interface RoomData {
     /** Map of usernames to ElysiaWS connections */
     clients: Map<string, ElysiaWS>;
-    /** Set of all usernames in the room */
-    usernames: Set<string>;
 }
 
 /**
@@ -31,8 +29,7 @@ export class ChatManager {
         }
 
         this.rooms.set(roomId, {
-            clients: new Map(),
-            usernames: new Set()
+            clients: new Map()
         });
         logger.info(`Room ${roomId} created`);
         return true;
@@ -54,7 +51,7 @@ export class ChatManager {
         const roomData = this.rooms.get(roomId)!;
 
         // Check if username is already in the room
-        if (roomData.usernames.has(username)) {
+        if (roomData.clients.has(username)) {
             logger.warn(`Username ${username} already taken in room ${roomId}`);
             return false;
         }
@@ -69,7 +66,6 @@ export class ChatManager {
 
         // Add user to room
         roomData.clients.set(username, ws);
-        roomData.usernames.add(username);
 
         // Notify all users in the room that a new user has joined
         const message: JoinRoomMessage = {
@@ -88,10 +84,10 @@ export class ChatManager {
             system: true,
             type: MessageType.USER_LIST,
             roomId: roomId,
-            users: Array.from(roomData.usernames)
+            users: Array.from(roomData.clients.keys())
         };
         this.broadcastMessage(roomId, userListMessage);
-        
+
         return true;
     }
 
@@ -111,7 +107,6 @@ export class ChatManager {
         }
 
         roomData.clients.delete(username);
-        roomData.usernames.delete(username);
 
         // If room is empty, delete it
         if (roomData.clients.size === 0) {
@@ -133,7 +128,7 @@ export class ChatManager {
                 system: true,
                 type: MessageType.USER_LIST,
                 roomId: roomId,
-                users: Array.from(roomData.usernames)
+                users: Array.from(roomData.clients.keys())
             };
             this.broadcastMessage(roomId, userListMessage);
         }
