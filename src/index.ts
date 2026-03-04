@@ -78,7 +78,6 @@ const app = new Elysia()
                 system: true,
                 type: MessageType.ERROR,
                 roomId: parsedMessage.roomId,
-                username: '',
                 content: 'Not a member of this room',
                 timestamp: Date.now(),
               });
@@ -97,7 +96,6 @@ const app = new Elysia()
           system: true,
           type: MessageType.ERROR,
           roomId: '',
-          username: '',
           content: 'Invalid message format',
           timestamp: Date.now(),
         };

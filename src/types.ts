@@ -85,8 +85,8 @@ export interface ErrorMessage extends BaseMessage {
   type: MessageType.ERROR;
   /** ID of the room where the error occurred */
   roomId: string;
-  /** Username to whom the error relates */
-  username: string;
+  /** Username to whom the error relates (omitted for system-level errors) */
+  username?: string;
   /** Error message content */
   content: string;
   /** Timestamp when the error occurred */
