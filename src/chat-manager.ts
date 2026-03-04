@@ -1,4 +1,4 @@
-import { ElysiaWS } from "elysia/dist/ws";
+import { ElysiaWS } from "elysia/ws";
 import { Message, MessageType, JoinRoomMessage, LeaveRoomMessage, ErrorMessage, UserListMessage } from "./types";
 import { logger } from "./utils/logger";
 
@@ -8,8 +8,13 @@ import { logger } from "./utils/logger";
 interface RoomData {
     /** Map of usernames to ElysiaWS connections */
     clients: Map<string, ElysiaWS>;
-    /** Set of all usernames in the room */
-    usernames: Set<string>;
+}
+
+const MAX_ID_LENGTH = 64;
+const VALID_ID_RE = /^[a-zA-Z0-9_-]+$/;
+
+function isValidId(value: string): boolean {
+    return value.length > 0 && value.length <= MAX_ID_LENGTH && VALID_ID_RE.test(value);
 }
 
 /**
@@ -31,8 +36,7 @@ export class ChatManager {
         }
 
         this.rooms.set(roomId, {
-            clients: new Map(),
-            usernames: new Set()
+            clients: new Map()
         });
         logger.info(`Room ${roomId} created`);
         return true;
@@ -43,9 +47,14 @@ export class ChatManager {
      * @param ws - ElysiaWS connection of the user
      * @param roomId - ID of the room to join
      * @param username - Username of the user
-     * @returns true if user successfully joined, false otherwise
+     * @returns null on success, or an error string describing the failure
      */
-    joinRoom(ws: ElysiaWS, roomId: string, username: string): boolean {
+    joinRoom(ws: ElysiaWS, roomId: string, username: string): string | null {
+        if (!isValidId(roomId) || !isValidId(username)) {
+            logger.warn(`Invalid roomId or username: "${roomId}", "${username}"`);
+            return 'Invalid room ID or username';
+        }
+
         // Create room if it doesn't exist
         if (!this.rooms.has(roomId)) {
             this.createRoom(roomId);
@@ -54,22 +63,21 @@ export class ChatManager {
         const roomData = this.rooms.get(roomId)!;
 
         // Check if username is already in the room
-        if (roomData.usernames.has(username)) {
+        if (roomData.clients.has(username)) {
             logger.warn(`Username ${username} already taken in room ${roomId}`);
-            return false;
+            return 'Username already taken';
         }
 
         // Check if this connection is already in another username in the room
         for (const [_, connection] of roomData.clients.entries()) {
             if (connection === ws) {
                 logger.warn(`Connection already in room ${roomId}`);
-                return false;
+                return 'Already joined this room';
             }
         }
 
         // Add user to room
         roomData.clients.set(username, ws);
-        roomData.usernames.add(username);
 
         // Notify all users in the room that a new user has joined
         const message: JoinRoomMessage = {
@@ -88,11 +96,11 @@ export class ChatManager {
             system: true,
             type: MessageType.USER_LIST,
             roomId: roomId,
-            users: Array.from(roomData.usernames)
+            users: Array.from(roomData.clients.keys())
         };
         this.broadcastMessage(roomId, userListMessage);
-        
-        return true;
+
+        return null;
     }
 
     /**
@@ -111,7 +119,6 @@ export class ChatManager {
         }
 
         roomData.clients.delete(username);
-        roomData.usernames.delete(username);
 
         // If room is empty, delete it
         if (roomData.clients.size === 0) {
@@ -127,20 +134,34 @@ export class ChatManager {
                 content: `@${username} left the room`
             };
             this.broadcastMessage(roomId, message);
+
+            // Broadcast the list of users to the room
+            const userListMessage: UserListMessage = {
+                system: true,
+                type: MessageType.USER_LIST,
+                roomId: roomId,
+                users: Array.from(roomData.clients.keys())
+            };
+            this.broadcastMessage(roomId, userListMessage);
         }
 
         logger.info(`User ${username} left room ${roomId}`);
 
-        // Broadcast the list of users to the room
-        const userListMessage: UserListMessage = {
-            system: true,
-            type: MessageType.USER_LIST,
-            roomId: roomId,
-            users: Array.from(roomData.usernames)
-        };
-        this.broadcastMessage(roomId, userListMessage);
-
         return true;
+    }
+
+    /**
+     * Check if a WebSocket connection is a member of a room
+     * @param ws - ElysiaWS connection to check
+     * @param roomId - ID of the room
+     */
+    isInRoom(ws: ElysiaWS, roomId: string): boolean {
+        const roomData = this.rooms.get(roomId);
+        if (!roomData) return false;
+        for (const connection of roomData.clients.values()) {
+            if (connection.id === ws.id) return true;
+        }
+        return false;
     }
 
     /**

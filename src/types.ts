@@ -85,8 +85,8 @@ export interface ErrorMessage extends BaseMessage {
   type: MessageType.ERROR;
   /** ID of the room where the error occurred */
   roomId: string;
-  /** Username to whom the error relates */
-  username: string;
+  /** Username to whom the error relates (omitted for system-level errors) */
+  username?: string;
   /** Error message content */
   content: string;
   /** Timestamp when the error occurred */
@@ -97,6 +97,7 @@ export interface ErrorMessage extends BaseMessage {
  * Message containing a list of users in a room
  */
 export interface UserListMessage extends BaseMessage {
+  type: MessageType.USER_LIST;
   /** ID of the room */
   roomId: string;
   /** List of usernames in the room */
@@ -106,4 +107,4 @@ export interface UserListMessage extends BaseMessage {
 /**
  * Union type of all possible message types
  */
-export type Message = JoinRoomMessage | LeaveRoomMessage | ChatMessage | ErrorMessage | UserListMessage;
+export type Message = JoinRoomMessage | LeaveRoomMessage | ChatMessage | ImageMessage | ErrorMessage | UserListMessage;

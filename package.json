@@ -1,15 +1,15 @@
 {
   "name": "private-chat-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "bun test",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "elysia": "^1.4.27"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "1.2.4"
   },
   "module": "src/index.js"
 }

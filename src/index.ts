@@ -5,7 +5,7 @@ import { logger } from './utils/logger';
 import { config } from './config';
 import { renderIndexPage } from './templates/index.html';
 
-const VERSION = require('../package.json').version;
+import { version as VERSION } from '../package.json';
 
 /**
  * Determines if the user agent is a browser
@@ -26,9 +26,12 @@ function isBrowser(userAgent: string | null): boolean {
  * Initialize the chat application
  */
 const chatManager = new ChatManager();
-const port = (config.isDevelopment && Bun.argv.slice(2).includes("--port")) ? Bun.argv.slice(2)[1] : config.port ;
+const args = Bun.argv.slice(2);
+const portFlagIndex = args.indexOf("--port");
+const port = (config.isDevelopment && portFlagIndex !== -1) ? args[portFlagIndex + 1] : config.port;
 const app = new Elysia()
   .ws('/ws', {
+    maxPayloadLength: config.maxPayloadBytes,
     /**
      * Handle new WebSocket connection
      */
@@ -49,18 +52,17 @@ const app = new Elysia()
           case MessageType.JOIN_ROOM:
             
               const joinRoomMessage = parsedMessage as JoinRoomMessage;
-              const success = chatManager.joinRoom(ws, joinRoomMessage.roomId, joinRoomMessage.username);
-              if (!success) {
-                const errorMessage: ErrorMessage = {
+              const joinError = chatManager.joinRoom(ws, joinRoomMessage.roomId, joinRoomMessage.username);
+              if (joinError) {
+                chatManager.sendError(ws, {
                   system: true,
                   type: MessageType.ERROR,
                   roomId: joinRoomMessage.roomId,
                   username: joinRoomMessage.username,
-                  content: 'Username already taken',
+                  content: joinError,
                   timestamp: Date.now(),
-                };
-                chatManager.sendError(ws, errorMessage);
-                }
+                });
+              }
             break;
             
           case MessageType.LEAVE_ROOM:
@@ -69,10 +71,17 @@ const app = new Elysia()
             break;
             
           case MessageType.CHAT_MESSAGE:
-            chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
-            break;
-          
           case MessageType.IMAGE_MESSAGE:
+            if (!chatManager.isInRoom(ws, parsedMessage.roomId)) {
+              chatManager.sendError(ws, {
+                system: true,
+                type: MessageType.ERROR,
+                roomId: parsedMessage.roomId,
+                content: 'Not a member of this room',
+                timestamp: Date.now(),
+              });
+              break;
+            }
             chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
             break;
             
@@ -86,7 +95,6 @@ const app = new Elysia()
           system: true,
           type: MessageType.ERROR,
           roomId: '',
-          username: '',
           content: 'Invalid message format',
           timestamp: Date.now(),
         };
