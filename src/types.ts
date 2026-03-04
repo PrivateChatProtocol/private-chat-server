@@ -97,6 +97,7 @@ export interface ErrorMessage extends BaseMessage {
  * Message containing a list of users in a room
  */
 export interface UserListMessage extends BaseMessage {
+  type: MessageType.USER_LIST;
   /** ID of the room */
   roomId: string;
   /** List of usernames in the room */
