@@ -47,12 +47,12 @@ export class ChatManager {
      * @param ws - ElysiaWS connection of the user
      * @param roomId - ID of the room to join
      * @param username - Username of the user
-     * @returns true if user successfully joined, false otherwise
+     * @returns null on success, or an error string describing the failure
      */
-    joinRoom(ws: ElysiaWS, roomId: string, username: string): boolean {
+    joinRoom(ws: ElysiaWS, roomId: string, username: string): string | null {
         if (!isValidId(roomId) || !isValidId(username)) {
             logger.warn(`Invalid roomId or username: "${roomId}", "${username}"`);
-            return false;
+            return 'Invalid room ID or username';
         }
 
         // Create room if it doesn't exist
@@ -65,14 +65,14 @@ export class ChatManager {
         // Check if username is already in the room
         if (roomData.clients.has(username)) {
             logger.warn(`Username ${username} already taken in room ${roomId}`);
-            return false;
+            return 'Username already taken';
         }
 
         // Check if this connection is already in another username in the room
         for (const [_, connection] of roomData.clients.entries()) {
             if (connection === ws) {
                 logger.warn(`Connection already in room ${roomId}`);
-                return false;
+                return 'Already joined this room';
             }
         }
 
@@ -100,7 +100,7 @@ export class ChatManager {
         };
         this.broadcastMessage(roomId, userListMessage);
 
-        return true;
+        return null;
     }
 
     /**

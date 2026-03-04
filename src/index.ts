@@ -52,17 +52,16 @@ const app = new Elysia()
           case MessageType.JOIN_ROOM:
             
               const joinRoomMessage = parsedMessage as JoinRoomMessage;
-              const success = chatManager.joinRoom(ws, joinRoomMessage.roomId, joinRoomMessage.username);
-              if (!success) {
-                const errorMessage: ErrorMessage = {
+              const joinError = chatManager.joinRoom(ws, joinRoomMessage.roomId, joinRoomMessage.username);
+              if (joinError) {
+                chatManager.sendError(ws, {
                   system: true,
                   type: MessageType.ERROR,
                   roomId: joinRoomMessage.roomId,
                   username: joinRoomMessage.username,
-                  content: 'Username already taken',
+                  content: joinError,
                   timestamp: Date.now(),
-                };
-                chatManager.sendError(ws, errorMessage);
+                });
               }
             break;
             
