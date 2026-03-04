@@ -72,10 +72,18 @@ const app = new Elysia()
             break;
             
           case MessageType.CHAT_MESSAGE:
-            chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
-            break;
-          
           case MessageType.IMAGE_MESSAGE:
+            if (!chatManager.isInRoom(ws, parsedMessage.roomId)) {
+              chatManager.sendError(ws, {
+                system: true,
+                type: MessageType.ERROR,
+                roomId: parsedMessage.roomId,
+                username: '',
+                content: 'Not a member of this room',
+                timestamp: Date.now(),
+              });
+              break;
+            }
             chatManager.broadcastMessage(parsedMessage.roomId, parsedMessage);
             break;
             

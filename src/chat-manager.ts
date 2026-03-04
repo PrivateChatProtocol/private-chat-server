@@ -151,6 +151,20 @@ export class ChatManager {
     }
 
     /**
+     * Check if a WebSocket connection is a member of a room
+     * @param ws - ElysiaWS connection to check
+     * @param roomId - ID of the room
+     */
+    isInRoom(ws: ElysiaWS, roomId: string): boolean {
+        const roomData = this.rooms.get(roomId);
+        if (!roomData) return false;
+        for (const connection of roomData.clients.values()) {
+            if (connection.id === ws.id) return true;
+        }
+        return false;
+    }
+
+    /**
      * Broadcast a message to all users in a room
      * @param roomId - ID of the room to broadcast to
      * @param message - Message to broadcast
