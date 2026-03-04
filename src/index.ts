@@ -5,7 +5,7 @@ import { logger } from './utils/logger';
 import { config } from './config';
 import { renderIndexPage } from './templates/index.html';
 
-const VERSION = require('../package.json').version;
+import { version as VERSION } from '../package.json';
 
 /**
  * Determines if the user agent is a browser
