@@ -7,9 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 bun install          # Install dependencies
 bun run dev          # Start dev server with hot reload (watches src/index.ts)
+bun test             # Run unit tests
 ```
-
-There are no tests configured (`test` script exits with error).
 
 **Docker:**
 ```bash
@@ -23,6 +22,7 @@ docker-compose up    # Run production server on port 8000
 | `PORT` | `8000` | Server port |
 | `NODE_ENV` | (dev if unset) | Set to `production` to disable all logging |
 | `LOG_LEVEL` | `all` | One of: `all`, `debug`, `info`, `warn`, `error` |
+| `MAX_PAYLOAD_SIZE_MB` | `10` | Maximum WebSocket message size in MB |
 
 ## Architecture
 
@@ -41,7 +41,7 @@ Single-file entry point at `src/index.ts` bootstraps an **Elysia** (Bun-native) 
 
 **Source layout:**
 - `src/index.ts` — Elysia app, WebSocket handlers, HTTP routes (`/`, `/health`)
-- `src/chat-manager.ts` — `ChatManager` class: `joinRoom`, `leaveRoom`, `broadcastMessage`, `handleDisconnect`
+- `src/chat-manager.ts` — `ChatManager` class: `joinRoom`, `leaveRoom`, `isInRoom`, `broadcastMessage`, `sendError`, `handleDisconnect`
 - `src/types.ts` — All message interfaces and `MessageType` enum
 - `src/config.ts` — Reads env vars into a typed `config` object
 - `src/utils/logger.ts` — Leveled logger, no-ops in production
