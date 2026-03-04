@@ -1,57 +1,31 @@
 import { config } from '../config';
 
+const LEVELS = { debug: 0, info: 1, warn: 2, error: 3, all: 0 };
+
+function isEnabled(level: 'debug' | 'info' | 'warn' | 'error'): boolean {
+    if (!config.isDevelopment) return false;
+    const configured = config.logLevel as keyof typeof LEVELS;
+    return LEVELS[level] >= LEVELS[configured ?? 'all'];
+}
+
 /**
  * Simple logger utility for consistent logging throughout the application
  */
 class Logger {
-
-
-    /**
-     * Log debug message (only in development)
-     */
     debug(message: string, ...args: any[]): void {
-        if (!config.isDevelopment) {
-            return;
-        }
-        if (config.logLevel === 'all' || config.logLevel === 'debug') {
-            console.debug(`[DEBUG] ${message}`, ...args);
-        }
+        if (isEnabled('debug')) console.debug(`[DEBUG] ${message}`, ...args);
     }
 
-    /**
-     * Log info message
-     */
     info(message: string, ...args: any[]): void {
-        if (!config.isDevelopment) {
-            return;
-        }
-        if (config.logLevel === 'all' || config.logLevel === 'info') {
-            console.info(`[INFO] ${message}`, ...args);
-        }
+        if (isEnabled('info')) console.info(`[INFO] ${message}`, ...args);
     }
 
-    /**
-     * Log warning message
-     */
     warn(message: string, ...args: any[]): void {
-        if (!config.isDevelopment) {
-            return;
-        }
-        if (config.logLevel === 'all' || config.logLevel === 'warn') {
-            console.warn(`[WARN] ${message}`, ...args);
-        }
+        if (isEnabled('warn')) console.warn(`[WARN] ${message}`, ...args);
     }
 
-    /**
-     * Log error message
-     */
     error(message: string, ...args: any[]): void {
-        if (!config.isDevelopment) {
-            return;
-        }
-        if (config.logLevel === 'all' || config.logLevel === 'error') {
-            console.error(`[ERROR] ${message}`, ...args);
-        }
+        if (isEnabled('error')) console.error(`[ERROR] ${message}`, ...args);
     }
 }
 
